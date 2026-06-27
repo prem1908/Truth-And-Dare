@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Truth and Dare</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 20px auto;
+            padding: 0 15px 30px;
+            background: #f4f8ff;
+            color: #1b2430;
+        }
+        h1, h2, h3 {
+            text-align: center;
+            margin: 10px 0;
+        }
+        h1 {
+            font-size: 2rem;
+            letter-spacing: 0.4px;
+        }
+        .small-row {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .small-row input {
+            width: 60px;
+            padding: 7px;
+            text-align: center;
+            border: 1px solid #9bb7d4;
+            border-radius: 6px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        button {
+            padding: 10px 18px;
+            margin: 6px;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            background: #4a76d1;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+            cursor: pointer;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+        button:hover {
+            transform: translateY(-1px);
+            background: #3b5fb1;
+        }
+
+        #truthBtn { background: #26a69a; }
+        #truthBtn:hover { background: #1f8f83; }
+        #dareBtn { background: #ef6c00; }
+        #dareBtn:hover { background: #d55c00; }
+
+        #circle {
+            width: 360px;
+            height: 360px;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 10px;
+            background: linear-gradient(180deg, #ffffff 0%, #e8f1ff 100%);
+            border: 2px solid #b2c7ea;
+            border-radius: 18px;
+            padding: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        .player {
+            min-height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #aac2e6;
+            border-radius: 14px;
+            background: #f7fbff;
+            color: #1f2b42;
+            font-weight: 600;
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+        }
+
+        .player:hover {
+            background: #dde8ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        }
+
+        .player.selected {
+            background: #fce8d1;
+            border-color: #f7b36b;
+            box-shadow: 0 0 0 4px rgba(247, 179, 107, 0.18);
+        }
+
+        #player0 { grid-area: 1 / 1 / 2 / 2; }
+        #player1 { grid-area: 1 / 2 / 2 / 3; }
+        #player2 { grid-area: 1 / 3 / 2 / 4; }
+        #player3 { grid-area: 2 / 1 / 3 / 2; }
+        #player4 { grid-area: 2 / 3 / 3 / 4; }
+        #player5 { grid-area: 3 / 1 / 4 / 2; }
+        #player6 { grid-area: 3 / 2 / 4 / 3; }
+        #player7 { grid-area: 3 / 3 / 4 / 4; }
+
+        #bottle {
+            grid-area: 2 / 2 / 3 / 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #5c7dd9;
+            border-radius: 20px;
+            background: #eef4ff;
+            padding: 12px;
+            box-shadow: 0 6px 18px rgba(74,118,209,0.18);
+            transition: transform 0.6s ease;
+        }
+
+        #bottle.spin {
+            transform: rotate(720deg);
+        }
+        #bottle img {
+            width: 72px;
+            height: auto;
+            /* transform: rotate(180deg); */
+        }
+        #gameArea {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        #message {
+            margin-top: 14px;
+            font-size: 1rem;
+            min-height: 1.5em;
+            color: #2f3e55;
+        }
+        
+    </style>
+</head>
+<body>
+    <h1>Truth and Dare</h1>
+    <div class="small-row">
+        <label for="playerCount">How many players?</label>
+        <br>
+        <input id="playerCount" type="number" min="2" max="8" value="3" />
+        <button id="startBtn">Start</button>
+    </div>
+
+    <div id="gameArea" style="display: none;">
+        <h2>Players in a circle</h2>
+        <div id="circle"></div>
+        <div class="small-row">
+            <button id="spinBtn">Touch Bottle</button>
+        </div>
+        <div class="small-row" id="askButtons" style="display: none;">
+            <button id="truthBtn">Truth</button>
+            <button id="dareBtn">Dare</button>
+        </div>
+        <h3 id="message"></h3>
+    </div>
+
+    <script>
+        let playerCountInput = document.getElementById('playerCount');
+        let startButton = document.getElementById('startBtn');
+        let gameArea = document.getElementById('gameArea');
+        let circle = document.getElementById('circle');
+        let spinButton = document.getElementById('spinBtn');
+        let askButtons = document.getElementById('askButtons');
+        let truthButton = document.getElementById('truthBtn');
+        let dareButton = document.getElementById('dareBtn');
+        let message = document.getElementById('message');
+
+        let truthList = [
+            'What is your biggest fear?',
+            'Who is your secret crush?',
+            'What is one thing you never told your parents?',
+            'What is the funniest thing you have done?',
+            'What is your favorite game?'
+        ];
+        let dareList = [
+            'Sing a short song out loud.',
+            'Do 5 jumping jacks.',
+            'Say a funny sentence in a loud voice.',
+            'Show your best dance move.',
+            'Make a silly face for 10 seconds.'
+        ];
+        let playerEls = [];
+        let activePlayer = -1;
+
+        function makePlayers(count) {
+
+            circle.innerHTML = '';
+            playerEls = [];
+
+            for (let i = 0; i < count; i++) {
+                let player = document.createElement('div');
+                player.className = 'player';
+                player.id = 'player' + i;
+                player.textContent = 'Player ' + (i + 1);
+                circle.appendChild(player);
+                playerEls.push(player);
+            }
+
+            let bottle = document.createElement('div');
+            bottle.id = 'bottle';
+            bottle.innerHTML = '<img src="img_of_bottle-removebg-preview.png" alt="Bottle" />';
+            circle.appendChild(bottle);}
+
+        function clearSelection() {
+            playerEls.forEach(function(el) {
+                el.classList.remove('selected');});
+        }
+
+        function selectPlayer(index) {
+            clearSelection();
+
+            activePlayer = index;
+
+            if (playerEls[index]) {
+                playerEls[index].classList.add('selected');
+            }
+
+            message.textContent = 'Player ' + (index + 1) + ' is chosen. Pick Truth or Dare.';
+            askButtons.style.display = 'block';
+        }
+
+        function randomItem(list) {
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        startButton.addEventListener('click', function() {
+            let count = parseInt(playerCountInput.value, 10);
+            if (isNaN(count) || count < 2) {
+                alert('Enter 2 or more players.');
+                return;
+            }
+            if (count > 8) {
+                alert('Use up to 8 players.');
+                return;
+            }
+            gameArea.style.display = 'block';
+            makePlayers(count);
+            askButtons.style.display = 'none';
+            message.textContent = 'Touch the bottle to choose a player.';
+        });
+
+        let spinning = false;
+
+        spinButton.addEventListener('click', function() {
+            if (playerEls.length === 0) {
+                alert('Start the game first.');
+                return;
+            }
+            if (spinning) {
+                return;
+            }
+
+            spinning = true;
+            clearSelection();
+            askButtons.style.display = 'none';
+            message.textContent = 'Bottle is moving...';
+
+            let bottle = document.getElementById('bottle');
+            let steps = playerEls.length * 2 + Math.floor(Math.random() * playerEls.length);
+            let finalIndex = Math.floor(Math.random() * playerEls.length);
+            let current = 0;
+
+            bottle.classList.add('spin');
+
+
+            for (let i = 0; i < steps + finalIndex + 1; i++) {
+                let delay = 120 + i * 80;
+                setTimeout(function() {
+                    clearSelection();
+                    let index = i % playerEls.length;
+                    playerEls[index].classList.add('selected');
+
+                    if (i === steps + finalIndex) {
+                        bottle.classList.remove('spin');
+                        selectPlayer(index);
+                        spinning = false;
+                    }}, delay); }});
+
+        truthButton.addEventListener('click', function() {
+            if (activePlayer < 0) {
+                return;
+            }
+            message.textContent = 'Player ' + (activePlayer + 1) + ': ' + randomItem(truthList);
+        });
+
+        dareButton.addEventListener('click', function() {
+            if (activePlayer < 0) {
+                return;
+            }
+            message.textContent = 'Player ' + (activePlayer + 1) + ': ' + randomItem(dareList);
+        });
+
+    </script>
+</body>
+</html>
